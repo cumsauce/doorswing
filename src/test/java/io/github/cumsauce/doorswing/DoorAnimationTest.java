@@ -10,39 +10,88 @@ class DoorAnimationTest {
     private static final float EPS = 1e-6f;
 
     @Test
-    void easeBoundsAndMidpoint() {
-        assertEquals(0f, DoorAnimation.ease(0f), EPS);
-        assertEquals(1f, DoorAnimation.ease(1f), EPS);
-        assertEquals(0f, DoorAnimation.ease(-3f), EPS);
-        assertEquals(1f, DoorAnimation.ease(2f), EPS);
-        assertEquals(0.5f, DoorAnimation.ease(0.5f), EPS);
+    void normalEaseBoundsAndMidpoint() {
+        assertEquals(0f, DoorProfile.NORMAL.apply(0f), EPS);
+        assertEquals(1f, DoorProfile.NORMAL.apply(1f), EPS);
+        assertEquals(0f, DoorProfile.NORMAL.apply(-3f), EPS);
+        assertEquals(1f, DoorProfile.NORMAL.apply(2f), EPS);
+        assertEquals(0.5f, DoorProfile.NORMAL.apply(0.5f), EPS);
     }
 
     @Test
-    void easeIsMonotonic() {
-        float prev = Float.NEGATIVE_INFINITY;
-        for (int i = 0; i <= 100; i++) {
-            float v = DoorAnimation.ease(i / 100f);
-            assertTrue(v >= prev, "ease must be non-decreasing at t=" + i / 100f);
-            prev = v;
+    void normalAndHeavyAreMonotonic() {
+        for (DoorProfile profile : new DoorProfile[]{DoorProfile.NORMAL, DoorProfile.HEAVY}) {
+            float prev = Float.NEGATIVE_INFINITY;
+            for (int i = 0; i <= 100; i++) {
+                float v = profile.apply(i / 100f);
+                assertTrue(v >= prev, profile + " must be non-decreasing at t=" + i / 100f);
+                prev = v;
+            }
         }
     }
 
     @Test
+    void heavyIsSlowerOffTheLine() {
+        // Smootherstep lags smoothstep early on: the door takes more "effort" to get moving.
+        assertTrue(DoorProfile.HEAVY.apply(0.25f) < DoorProfile.NORMAL.apply(0.25f));
+        assertEquals(0.5f, DoorProfile.HEAVY.apply(0.5f), EPS);
+        assertEquals(500L, DoorProfile.HEAVY.durationMs);
+    }
+
+    @Test
+    void overshootProfilesSettleExactly() {
+        for (DoorProfile profile : new DoorProfile[]{DoorProfile.LIGHT, DoorProfile.FLOURISH}) {
+            assertEquals(0f, profile.apply(0f), EPS, profile + " must start at 0");
+            assertEquals(1f, profile.apply(1f), EPS, profile + " must settle at exactly 1");
+            float peak = 0f;
+            for (int i = 0; i <= 200; i++) {
+                peak = Math.max(peak, profile.apply(i / 200f));
+            }
+            assertTrue(peak > 1.01f, profile + " must overshoot, peak=" + peak);
+            assertTrue(peak < 1.25f, profile + " overshoot must stay subtle, peak=" + peak);
+        }
+        // Copper flourishes more than light wood.
+        float lightPeak = 0f;
+        float flourishPeak = 0f;
+        for (int i = 0; i <= 200; i++) {
+            lightPeak = Math.max(lightPeak, DoorProfile.LIGHT.apply(i / 200f));
+            flourishPeak = Math.max(flourishPeak, DoorProfile.FLOURISH.apply(i / 200f));
+        }
+        assertTrue(flourishPeak > lightPeak);
+    }
+
+    @Test
+    void durationsPerProfile() {
+        assertEquals(300L, DoorProfile.NORMAL.durationMs);
+        assertEquals(500L, DoorProfile.HEAVY.durationMs);
+        assertEquals(240L, DoorProfile.LIGHT.durationMs);
+        assertEquals(420L, DoorProfile.FLOURISH.durationMs);
+    }
+
+    @Test
     void progressHitsEndpointsOnTime() {
-        DoorAnimation anim = new DoorAnimation(0f, 1f, 1_000L);
+        DoorAnimation anim = new DoorAnimation(0f, 1f, 1_000L, DoorProfile.NORMAL);
         assertEquals(0f, anim.progress(1_000L), EPS);
-        assertEquals(1f, anim.progress(1_000L + DoorAnimation.DURATION_MS), EPS);
+        assertEquals(1f, anim.progress(1_000L + anim.profile.durationMs), EPS);
         assertEquals(1f, anim.progress(10_000L), EPS);
-        assertFalse(anim.isDone(1_000L + DoorAnimation.DURATION_MS - 1));
-        assertTrue(anim.isDone(1_000L + DoorAnimation.DURATION_MS));
+        assertFalse(anim.isDone(1_000L + anim.profile.durationMs - 1));
+        assertTrue(anim.isDone(1_000L + anim.profile.durationMs));
+    }
+
+    @Test
+    void overshootAnimationReachesTargetExactlyAtEnd() {
+        DoorAnimation anim = new DoorAnimation(0f, 1f, 0L, DoorProfile.FLOURISH);
+        // Mid-swing overshoot is allowed...
+        assertTrue(anim.progress(anim.profile.durationMs * 3L / 4L) > 1f);
+        // ...but the endpoint is exact.
+        assertEquals(1f, anim.progress(anim.profile.durationMs), EPS);
     }
 
     @Test
     void closingAnimationStartsAtCurrentProgress() {
-        DoorAnimation anim = new DoorAnimation(0.4f, 0f, 5_000L);
+        DoorAnimation anim = new DoorAnimation(0.4f, 0f, 5_000L, DoorProfile.NORMAL);
         assertEquals(0.4f, anim.progress(5_000L), EPS);
-        assertEquals(0f, anim.progress(5_000L + DoorAnimation.DURATION_MS), EPS);
+        assertEquals(0f, anim.progress(5_000L + anim.profile.durationMs), EPS);
     }
 
     @Test

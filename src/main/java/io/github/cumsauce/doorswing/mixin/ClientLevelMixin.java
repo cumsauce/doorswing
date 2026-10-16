@@ -1,5 +1,6 @@
 package io.github.cumsauce.doorswing.mixin;
 
+import io.github.cumsauce.doorswing.DoorProfiles;
 import io.github.cumsauce.doorswing.DoorSwingAnimations;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.Level;
@@ -48,6 +49,6 @@ public class ClientLevelMixin {
         long now = System.currentTimeMillis();
         float current = DoorSwingAnimations.currentP(key, now);
         float fromP = Float.isNaN(current) ? (wasOpen ? 1f : 0f) : current;
-        DoorSwingAnimations.start(key, fromP, isOpen ? 1f : 0f, now);
+        DoorSwingAnimations.start(key, fromP, isOpen ? 1f : 0f, DoorProfiles.of(state), now);
     }
 }

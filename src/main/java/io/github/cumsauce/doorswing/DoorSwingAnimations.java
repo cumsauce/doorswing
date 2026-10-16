@@ -19,8 +19,8 @@ public final class DoorSwingAnimations {
     private DoorSwingAnimations() {
     }
 
-    public static void start(long posKey, float fromP, float toP, long nowMs) {
-        ANIMS.put(posKey, new DoorAnimation(fromP, toP, nowMs));
+    public static void start(long posKey, float fromP, float toP, DoorProfile profile, long nowMs) {
+        ANIMS.put(posKey, new DoorAnimation(fromP, toP, nowMs, profile));
     }
 
     public static boolean isAnimating(long posKey) {

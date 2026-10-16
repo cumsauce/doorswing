@@ -1,36 +1,31 @@
 package io.github.cumsauce.doorswing;
 
 /**
- * One in-flight door swing: progress p moves from startP to targetP (both in [0, 1],
- * 0 = fully closed, 1 = fully open) over {@link #DURATION_MS} with a smoothstep ease.
+ * One in-flight door swing: progress p moves from startP to targetP (0 = fully closed,
+ * 1 = fully open) over the bound {@link DoorProfile}'s duration with its easing curve.
+ * Progress may briefly overshoot the endpoints for springy profiles.
  */
 public final class DoorAnimation {
-    public static final long DURATION_MS = 300L;
-
     public final float startP;
     public final float targetP;
     public final long startTimeMs;
+    public final DoorProfile profile;
 
-    public DoorAnimation(float startP, float targetP, long startTimeMs) {
+    public DoorAnimation(float startP, float targetP, long startTimeMs, DoorProfile profile) {
         this.startP = startP;
         this.targetP = targetP;
         this.startTimeMs = startTimeMs;
-    }
-
-    /** Smoothstep ease 3t²-2t³ with t clamped to [0, 1]. */
-    public static float ease(float t) {
-        float c = t < 0f ? 0f : (t > 1f ? 1f : t);
-        return c * c * (3f - 2f * c);
+        this.profile = profile;
     }
 
     /** Progress at the given time. */
     public float progress(long nowMs) {
-        float t = (float) (nowMs - startTimeMs) / (float) DURATION_MS;
-        return startP + (targetP - startP) * ease(t);
+        float t = (float) (nowMs - startTimeMs) / (float) profile.durationMs;
+        return startP + (targetP - startP) * profile.apply(t);
     }
 
     public boolean isDone(long nowMs) {
-        return nowMs - startTimeMs >= DURATION_MS;
+        return nowMs - startTimeMs >= profile.durationMs;
     }
 
     /** Model-pose rotation in degrees: hinge left swings -90°, hinge right +90° at full open. */

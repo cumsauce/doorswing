@@ -34,6 +34,12 @@ public final class DoorSwingRenderer {
         LevelRenderEvents.COLLECT_SUBMITS.register(DoorSwingRenderer::render);
     }
 
+    /** Called on disconnect: drop tracker state before the next world's chunk meshing starts. */
+    public static void reset() {
+        DoorSwingAnimations.clear();
+        lastLevel = null;
+    }
+
     private static void render(LevelRenderContext ctx) {
         if (DoorSwingAnimations.isEmpty()) {
             return;

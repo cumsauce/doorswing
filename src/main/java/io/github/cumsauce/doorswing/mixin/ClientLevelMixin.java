@@ -2,6 +2,7 @@ package io.github.cumsauce.doorswing.mixin;
 
 import io.github.cumsauce.doorswing.DoorSwingAnimations;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -11,16 +12,22 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Starts door animations when the client applies a block update that flips DoorBlock.OPEN
- * (server sends both halves as separate updates; each animates independently).
+ * Starts door animations when the level applies a block update that flips DoorBlock.OPEN.
+ * Targets {@link Level#setBlock} (the common superclass) because server-verified updates
+ * call it directly via invokespecial, bypassing ClientLevel's override.
  */
-@Mixin(ClientLevel.class)
+@Mixin(Level.class)
 public class ClientLevelMixin {
 
     @Inject(method = "setBlock", at = @At("HEAD"))
     private void doorswing$onSetBlock(BlockPos pos, BlockState state, int flags, int maxUpdateDepth,
                                       CallbackInfoReturnable<Boolean> cir) {
-        ClientLevel self = (ClientLevel) (Object) this;
+        Level self = (Level) (Object) this;
+        if (!(self instanceof ClientLevel)) {
+            // Only client-side levels drive the render tracker; server levels (incl. singleplayer
+            // integrated server) must not touch it.
+            return;
+        }
         BlockState old = self.getBlockState(pos);
         if (!(old.getBlock() instanceof DoorBlock)) {
             // Air -> door (placement) or non-door change: nothing to animate.

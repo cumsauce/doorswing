@@ -76,8 +76,13 @@ public final class DoorSwingRenderer {
             }
             float p = anim.progress(now);
             boolean hingeLeft = real.getValue(DoorBlock.HINGE) == DoorHingeSide.LEFT;
-            BlockState model = real.setValue(DoorBlock.OPEN, DoorAnimation.openModel(p));
-            float angle = DoorAnimation.angleDeg(p, hingeLeft);
+            boolean useOpenModel = DoorAnimation.openModel(p);
+            BlockState model = real.setValue(DoorBlock.OPEN, useOpenModel);
+            // Closed model is in the closed pose; open model already carries the full
+            // open rotation, so only the *remaining* delta is applied to it.
+            float angle = useOpenModel
+                    ? DoorAnimation.angleDeg(p - 1f, hingeLeft)
+                    : DoorAnimation.angleDeg(p, hingeLeft);
 
             MovingBlockRenderState moving = new MovingBlockRenderState();
             moving.randomSeedPos = pos;

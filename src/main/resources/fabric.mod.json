@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "doorswing",
+  "version": "${version}",
+  "name": "Door Swing",
+  "description": "Smoothly animates doors opening and closing on the client.",
+  "authors": [
+    "cumsauce"
+  ],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "io.github.cumsauce.doorswing.DoorSwingClient"
+    ]
+  },
+  "mixins": [
+    "doorswing.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

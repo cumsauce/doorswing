@@ -67,6 +67,9 @@ public final class DoorSwingRenderer {
             long key = entry.getKey();
             DoorAnimation anim = entry.getValue();
             if (anim.isDone(now)) {
+                BlockPos donePos = BlockPos.of(key);
+                DoorSwingIntegration.driver().onDoorFinished(key,
+                        donePos.getX() + 0.5, donePos.getY() + 0.5, donePos.getZ() + 0.5, anim.profile);
                 DoorSwingAnimations.finish(key);
                 continue;
             }
@@ -81,6 +84,8 @@ public final class DoorSwingRenderer {
                 continue;
             }
             float p = anim.progress(now);
+            DoorSwingIntegration.driver().onDoorMoving(key,
+                    pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, anim.profile, p, now);
             boolean hingeLeft = real.getValue(DoorBlock.HINGE) == DoorHingeSide.LEFT;
             boolean useOpenModel = DoorAnimation.openModel(p);
             BlockState model = real.setValue(DoorBlock.OPEN, useOpenModel);

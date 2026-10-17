@@ -12,6 +12,9 @@
   "entrypoints": {
     "client": [
       "io.github.cumsauce.doorswing.DoorSwingClient"
+    ],
+    "foley": [
+      "io.github.cumsauce.doorswing.foley.DoorSwingFoley"
     ]
   },
   "mixins": [
@@ -22,5 +25,8 @@
     "minecraft": "~26.3",
     "java": ">=25",
     "fabric-api": "*"
+  },
+  "suggests": {
+    "foley": ">=0.1.0-beta.59"
   }
 }

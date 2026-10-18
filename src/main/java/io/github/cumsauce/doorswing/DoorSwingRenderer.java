@@ -51,10 +51,13 @@ public final class DoorSwingRenderer {
             return;
         }
         if (level != lastLevel) {
-            // New world or dimension: entries from the previous level are stale.
-            DoorSwingAnimations.clear();
+            // New world or dimension: entries from the previous level are stale. On the very
+            // first frame lastLevel is still null, so keep the swing that just started instead
+            // of dropping it (a dropped entry also never re-dirties its section).
+            if (lastLevel != null) {
+                DoorSwingAnimations.clear();
+            }
             lastLevel = level;
-            return;
         }
 
         long now = System.currentTimeMillis();

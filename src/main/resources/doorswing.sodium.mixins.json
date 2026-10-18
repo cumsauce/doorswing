@@ -1,0 +1,11 @@
+{
+  "required": false,
+  "package": "io.github.cumsauce.doorswing.mixin.sodium",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "SodiumLevelSliceMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

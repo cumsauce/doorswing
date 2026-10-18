@@ -18,7 +18,8 @@
     ]
   },
   "mixins": [
-    "doorswing.mixins.json"
+    "doorswing.mixins.json",
+    "doorswing.sodium.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.5",
@@ -27,6 +28,7 @@
     "fabric-api": "*"
   },
   "suggests": {
-    "foley": ">=0.1.0-beta.59"
+    "foley": ">=0.1.0-beta.59",
+    "sodium": "*"
   }
 }
